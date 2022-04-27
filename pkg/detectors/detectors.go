@@ -8,8 +8,6 @@ import (
 	"strings"
 	"unicode"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/trufflesecurity/trufflehog/v3/pkg/pb/detectorspb"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/pb/source_metadatapb"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/pb/sourcespb"
@@ -52,19 +50,6 @@ type ResultWithMetadata struct {
 
 // CopyMetadata returns a detector result with included metadata from the source chunk.
 func CopyMetadata(chunk *sources.Chunk, result Result) *ResultWithMetadata {
-	// Check for custom false positives here. It can't be done in IsKnownFalsePositive
-	// because some detectors only run that function when results are unverified. And it
-	// can't be done earlier, in detectorWorker before running *any* detectors, because
-	// the data at that point hasn't been split into individual matches, just larger chunks
-	// that may contain multiple matches, which could lead to missing a real match if the
-	// chunk happens to also contain a custom false positive. So we check here.
-	data := string(result.Raw)
-	if GetCustomFalsePositivesFilter().Pass(data) {
-		log.Debugf("%s", result)
-		log.Debugf("ignoring custom false positive: %s", data)
-		return nil
-	}
-
 	return &ResultWithMetadata{
 		SourceMetadata: chunk.SourceMetadata,
 		SourceID:       chunk.SourceID,

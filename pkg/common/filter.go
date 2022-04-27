@@ -64,6 +64,7 @@ func FilterRulesFromFile(source string, allowRegexp bool) (*FilterRuleSet, error
 	if source == "" {
 		return &rules, nil
 	}
+	log.Debugf("creating filter rules from file %s", source)
 
 	commentPattern := regexp.MustCompile(`^\s*#`)
 
@@ -91,7 +92,7 @@ func FilterRulesFromFile(source string, allowRegexp bool) (*FilterRuleSet, error
 		if err != nil {
 			return nil, fmt.Errorf("can not compile regular expression: %s", line)
 		}
-		log.Tracef("Filter rule: %s", *pattern)
+		log.Tracef("filter regexp: %s", pattern.String())
 		rules = append(rules, *pattern)
 	}
 	return &rules, nil
