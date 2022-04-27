@@ -60,6 +60,7 @@ func CopyMetadata(chunk *sources.Chunk, result Result) *ResultWithMetadata {
 	// chunk happens to also contain a custom false positive. So we check here.
 	data := string(result.Raw)
 	if GetCustomFalsePositivesFilter().Pass(data) {
+		log.Debugf("%s", result)
 		log.Debugf("ignoring custom false positive: %s", data)
 		return nil
 	}

@@ -105,6 +105,7 @@ func SetCustomFalsePositivesFilename(filename string) {
 
 func GetCustomFalsePositivesFilter() *common.Filter {
 	if customFalsePositivesFilename == "" {
+		log.Debugf("no filename set for custom false positives, so only checking default false positives")
 		return common.FilterNoRules()
 	}
   initCustomFalsePositivesFilterOnce.Do(InitCustomFalsePositivesFilter)
@@ -113,7 +114,7 @@ func GetCustomFalsePositivesFilter() *common.Filter {
 
 func InitCustomFalsePositivesFilter() {
 	if customFalsePositivesFilename == "" {
-		log.Fatal("no filename set for custom false positives")
+		log.Fatal("no filename set for custom false positives, could not create filter")
 	}
 	log.Debugf("creating custom false positives from file %s", customFalsePositivesFilename)
 
