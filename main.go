@@ -24,6 +24,7 @@ import (
 
 	"github.com/trufflesecurity/trufflehog/v3/pkg/common"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/decoders"
+	"github.com/trufflesecurity/trufflehog/v3/pkg/detectors"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/engine"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/output"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/sources/git"
@@ -43,6 +44,7 @@ var (
 	printAvgDetectorTime = cli.Flag("print-avg-detector-time", "Print the average time spent on each detector.").Bool()
 	noUpdate             = cli.Flag("no-update", "Don't check for updates.").Bool()
 	fail                 = cli.Flag("fail", "Exit with code 183 if results are found.").Bool()
+	falsePositivesPath   = cli.Flag("false-positives", "Path to file with newline separated strings to ignore as false positives").String()
 
 	gitScan             = cli.Command("git", "Find credentials in git repositories.")
 	gitScanURI          = gitScan.Arg("uri", "Git repository URL. https:// or file:// schema expected.").Required().String()
@@ -154,6 +156,8 @@ func run(state overseer.State) {
 		}()
 	}
 
+	detectors.SetCustomFalsePositivesFilename(strings.TrimSpace(*falsePositivesPath))
+
 	ctx := context.TODO()
 	e := engine.Start(ctx,
 		engine.WithConcurrency(*concurrency),
@@ -161,7 +165,7 @@ func run(state overseer.State) {
 		engine.WithDetectors(!*noVerification, engine.DefaultDetectors()...),
 	)
 
-	filter, err := common.FilterFromFiles(*gitScanIncludePaths, *gitScanExcludePaths)
+	filter, err := common.FilterFromFiles(*gitScanIncludePaths, *gitScanExcludePaths, true)
 	if err != nil {
 		logrus.WithError(err).Fatal("could not create filter")
 	}

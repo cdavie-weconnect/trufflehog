@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -18,20 +19,28 @@ type FilterRuleSet []regexp.Regexp
 
 // FilterEmpty returns a Filter that always passes.
 func FilterEmpty() *Filter {
-	filter, err := FilterFromFiles("", "")
+	filter, err := FilterFromFiles("", "", true)
 	if err != nil {
 		log.WithError(err).Fatalf("could not create empty filter")
 	}
 	return filter
 }
 
+// FilterNoRules returns a Filter that never passes.
+func FilterNoRules() *Filter {
+	return &Filter{
+		include: &FilterRuleSet{},
+		exclude: &FilterRuleSet{},
+	}
+}
+
 // FilterFromFiles creates a Filter using the rules in the provided include and exclude files.
-func FilterFromFiles(includeFilterPath, excludeFilterPath string) (*Filter, error) {
-	includeRules, err := FilterRulesFromFile(includeFilterPath)
+func FilterFromFiles(includeFilterPath string, excludeFilterPath string, allowRegexp bool) (*Filter, error) {
+	includeRules, err := FilterRulesFromFile(includeFilterPath, allowRegexp)
 	if err != nil {
 		return nil, fmt.Errorf("could not create include rules: %s", err)
 	}
-	excludeRules, err := FilterRulesFromFile(excludeFilterPath)
+	excludeRules, err := FilterRulesFromFile(excludeFilterPath, allowRegexp)
 	if err != nil {
 		return nil, fmt.Errorf("could not create exclude rules: %s", err)
 	}
@@ -50,7 +59,7 @@ func FilterFromFiles(includeFilterPath, excludeFilterPath string) (*Filter, erro
 }
 
 // FilterRulesFromFile loads the list of regular expression filter rules in `source` and creates a FilterRuleSet.
-func FilterRulesFromFile(source string) (*FilterRuleSet, error) {
+func FilterRulesFromFile(source string, allowRegexp bool) (*FilterRuleSet, error) {
 	rules := FilterRuleSet{}
 	if source == "" {
 		return &rules, nil
@@ -72,8 +81,11 @@ func FilterRulesFromFile(source string) (*FilterRuleSet, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if commentPattern.MatchString(line) {
+		if strings.TrimSpace(line) == "" || commentPattern.MatchString(line) {
 			continue
+		}
+		if !allowRegexp {
+			line = regexp.QuoteMeta(line)
 		}
 		pattern, err := regexp.Compile(line)
 		if err != nil {

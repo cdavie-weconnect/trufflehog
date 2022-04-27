@@ -3,7 +3,12 @@ package detectors
 import (
 	_ "embed"
 	"strings"
+	"sync"
 	"unicode"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/trufflesecurity/trufflehog/v3/pkg/common"
 )
 
 var DefaultFalsePositives = []FalsePositive{"example", "xxxxxx", "aaaaaa", "abcde", "00000", "sample"}
@@ -35,6 +40,11 @@ var FalsePositiveWordlists = Wordlists{
 //Currently that includes: No number, english word in key, or matches common example pattens.
 //Only the secret key material should be passed into this function
 func IsKnownFalsePositive(match string, falsePositives []FalsePositive, wordCheck bool) bool {
+	var customFilter = GetCustomFalsePositivesFilter()
+	if customFilter.Pass(match) {
+		log.Debugf("ignoring custom false positive: %s", match)
+		return true
+	}
 
 	for _, fp := range falsePositives {
 		if strings.Contains(strings.ToLower(match), string(fp)) {
@@ -89,4 +99,33 @@ func bytesToCleanWordList(data []byte) []string {
 		}
 	}
 	return words
+}
+
+var initCustomFalsePositivesFilterOnce sync.Once
+var customFalsePositivesFilename string
+var customFalsePositivesFilter *common.Filter
+
+func SetCustomFalsePositivesFilename(filename string) {
+	customFalsePositivesFilename = filename
+}
+
+func GetCustomFalsePositivesFilter() *common.Filter {
+	if customFalsePositivesFilename == "" {
+		return common.FilterNoRules()
+	}
+  initCustomFalsePositivesFilterOnce.Do(InitCustomFalsePositivesFilter)
+	return customFalsePositivesFilter
+}
+
+func InitCustomFalsePositivesFilter() {
+	if customFalsePositivesFilename == "" {
+		log.Fatal("no filename set for custom false positives")
+	}
+	log.Debugf("creating custom false positives from file %s", customFalsePositivesFilename)
+
+	var err error
+	customFalsePositivesFilter, err = common.FilterFromFiles(customFalsePositivesFilename, "", false)
+	if err != nil {
+		log.WithError(err).Fatal("could not create rules for custom false positives")
+	}
 }
