@@ -2,7 +2,7 @@ module github.com/trufflesecurity/trufflehog/v3
 
 go 1.17
 
-replace github.com/trufflesecurity/trufflehog => github.com/cdavie-weconnect/trufflehog main
+replace github.com/trufflesecurity/trufflehog/v3 => github.com/cdavie-weconnect/trufflehog/v3 main
 
 replace github.com/jpillora/overseer => github.com/trufflesecurity/overseer v1.1.7-custom5
 
