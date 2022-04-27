@@ -29,7 +29,7 @@ runs:
     - file://${{ inputs.path }}
     - --since-commit
     - ${{ inputs.base }}
-    - --branch
+    - ${{ inputs.head && '--branch' }}
     - ${{ inputs.head }}
     - ${{ inputs.falsePositives && '--false-positives' }}
     - ${{ inputs.falsePositives }}
