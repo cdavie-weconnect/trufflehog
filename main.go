@@ -86,16 +86,21 @@ var (
 )
 
 func init() {
-	for i, arg := range os.Args {
+	args := make([]string, 0, len(os.Args))
+	for _, arg := range os.Args[1:] {
+		if arg == "" {
+			continue
+		}
 		if strings.HasPrefix(arg, "--") {
 			split := strings.SplitN(arg, "=", 2)
 			split[0] = strings.ReplaceAll(split[0], "_", "-")
-			os.Args[i] = strings.Join(split, "=")
+			arg = strings.Join(split, "=")
 		}
+		args = append(args, arg)
 	}
 
 	cli.Version("trufflehog " + version.BuildVersion)
-	cmd = kingpin.MustParse(cli.Parse(os.Args[1:]))
+	cmd = kingpin.MustParse(cli.Parse(args))
 
 	if *jsonOut {
 		logrus.SetFormatter(&logrus.JSONFormatter{})
