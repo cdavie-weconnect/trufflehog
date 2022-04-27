@@ -183,7 +183,11 @@ func (e *Engine) detectorWorker(ctx context.Context) {
 							targetChunk = &copyChunk
 							SetLineNumber(&copyChunk, &result)
 						}
-						e.results <- detectors.CopyMetadata(targetChunk, result)
+						resultWithMetadata := detectors.CopyMetadata(targetChunk, result)
+						// May be nil if it was screen out as a custom false positive.
+						if resultWithMetadata != nil {
+							e.results <- *resultWithMetadata
+						}
 					}
 					if len(results) > 0 {
 						elapsed := time.Since(start)
