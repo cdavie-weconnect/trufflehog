@@ -241,7 +241,7 @@ func run(state overseer.State) {
 			}
 			fmt.Println(string(out))
 		default:
-			output.PrintPlainOutput(&r)
+			output.PrintPlainOutput(&r, false)
 		}
 	}
 	logrus.Debugf("scanned %d chunks", e.ChunksScanned())

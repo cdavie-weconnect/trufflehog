@@ -13,6 +13,7 @@ import (
 
 	"github.com/trufflesecurity/trufflehog/v3/pkg/decoders"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/detectors"
+	"github.com/trufflesecurity/trufflehog/v3/pkg/output"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/pb/source_metadatapb"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/pb/sourcespb"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/sources"
@@ -194,6 +195,9 @@ func (e *Engine) detectorWorker(ctx context.Context) {
 						data := string(result.Raw)
 						if detectors.GetCustomFalsePositivesFilter().Pass(data) {
 							logrus.Debugf("ignoring custom false positive: \"%s\"", data)
+							if logrus.IsLevelEnabled(logrus.DebugLevel) {
+								output.PrintPlainOutput(resultWithMetadata, true)
+							}
 						} else {
 							e.results <- *resultWithMetadata
 						}

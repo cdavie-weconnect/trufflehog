@@ -2,7 +2,6 @@ package output
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/fatih/color"
@@ -11,13 +10,38 @@ import (
 	"github.com/trufflesecurity/trufflehog/v3/pkg/pb/source_metadatapb"
 )
 
+type Printers struct {
+	header *color.Color
+	text *color.Color
+	data *color.Color
+}
+
 var (
 	yellowPrinter = color.New(color.FgYellow)
 	greenPrinter  = color.New(color.FgHiGreen)
 	whitePrinter  = color.New(color.FgWhite)
+	faintWhitePrinter = color.New(color.FgWhite, color.Faint)
+
+	faint = Printers{
+		header: faintWhitePrinter,
+		text:   faintWhitePrinter,
+		data:   faintWhitePrinter,
+	}
+
+	verified = Printers{
+		header: yellowPrinter,
+		text:   greenPrinter,
+		data:   whitePrinter,
+	}
+
+	unverified = Printers{
+		header: whitePrinter,
+		text:   whitePrinter,
+		data:   whitePrinter,
+	}
 )
 
-func PrintPlainOutput(r *detectors.ResultWithMetadata) {
+func PrintPlainOutput(r *detectors.ResultWithMetadata, faintWhiteOnly bool) {
 	out := outputFormat{
 		DetectorType: r.Result.DetectorType.String(),
 		Verified:     r.Result.Verified,
@@ -30,22 +54,33 @@ func PrintPlainOutput(r *detectors.ResultWithMetadata) {
 		logrus.WithError(err).Fatal("could not marshal result")
 	}
 
-	printer := greenPrinter
+	var verifiedStatus, icon string
+	var printers Printers
 
 	if out.Verified {
-		yellowPrinter.Print("Found verified result 🐷🔑\n")
+		printers = verified
+		verifiedStatus = "verified"
+		icon = ""
 	} else {
-		printer = whitePrinter
-		whitePrinter.Print("Found unverified result 🐷🔑❓\n")
+		printers = unverified
+		verifiedStatus = "unverified"
+		icon = "❓"
 	}
-	printer.Printf("Detector Type: %s\n", out.DetectorType)
-	printer.Printf("Raw result: %s\n", whitePrinter.Sprint(out.Raw))
+
+	if faintWhiteOnly {
+		printers = faint
+	}
+
+	printers.header.Printf("Found %s result 🐷🔑%s\n", verifiedStatus, icon)
+	printers.text.Printf("Detector Type: %s\n", out.DetectorType)
+	printers.text.Printf("Raw result: %s\n", printers.data.Sprint(out.Raw))
+
 	for _, data := range meta {
 		for k, v := range data {
-			printer.Printf("%s: %v\n", strings.Title(k), v)
+			printers.text.Printf("%s: %v\n", strings.Title(k), v)
 		}
 	}
-	fmt.Println("")
+	printers.text.Printf("\n")
 }
 
 func structToMap(obj interface{}) (m map[string]map[string]interface{}, err error) {
