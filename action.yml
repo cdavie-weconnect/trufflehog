@@ -15,6 +15,9 @@ inputs:
   falsePositives:
     description: Path to file with newline separated strings to ignore as false positives.
     required: false
+  debug:
+    description: Show debug information.
+    required: false
 branding:
   icon: "shield"
   color: "green"
@@ -30,4 +33,5 @@ runs:
     - ${{ inputs.head }}
     - ${{ inputs.falsePositives && '--false-positives' }}
     - ${{ inputs.falsePositives }}
+    - ${{ inputs.debug && '--debug' }}
     - --fail
