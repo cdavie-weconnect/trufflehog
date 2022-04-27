@@ -12,6 +12,9 @@ inputs:
   head:
     description: Scan commits until here (usually dev branch).
     required: false
+  excludePaths:
+    description: Path to file with newline separated regexes for files to exclude in scan.
+    required: false
   falsePositives:
     description: Path to file with newline separated strings to ignore as false positives.
     required: false
@@ -34,6 +37,8 @@ runs:
     - ${{ inputs.base }}
     - ${{ inputs.head && '--branch' }}
     - ${{ inputs.head }}
+    - ${{ inputs.excludePaths && '--exclude-paths' }}
+    - ${{ inputs.excludePaths }}
     - ${{ inputs.falsePositives && '--false-positives' }}
     - ${{ inputs.falsePositives }}
     - ${{ inputs.debug && '--debug' }}
