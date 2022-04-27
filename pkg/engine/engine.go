@@ -194,8 +194,8 @@ func (e *Engine) detectorWorker(ctx context.Context) {
 						resultWithMetadata := detectors.CopyMetadata(targetChunk, result)
 						data := string(result.Raw)
 						if detectors.GetCustomFalsePositivesFilter().Pass(data) {
-							logrus.Debugf("ignoring custom false positive: \"%s\"", data)
-							if logrus.IsLevelEnabled(logrus.DebugLevel) {
+							logrus.Infof("ignoring custom false positive: \"%s\"", data)
+							if logrus.IsLevelEnabled(logrus.InfoLevel) {
 								output.PrintPlainOutput(&resultWithMetadata, true)
 							}
 						} else {
