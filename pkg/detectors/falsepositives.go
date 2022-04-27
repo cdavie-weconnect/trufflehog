@@ -40,6 +40,7 @@ var FalsePositiveWordlists = Wordlists{
 //Currently that includes: No number, english word in key, or matches common example pattens.
 //Only the secret key material should be passed into this function
 func IsKnownFalsePositive(match string, falsePositives []FalsePositive, wordCheck bool) bool {
+
 	for _, fp := range falsePositives {
 		if strings.Contains(strings.ToLower(match), string(fp)) {
 			return true

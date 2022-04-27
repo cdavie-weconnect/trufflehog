@@ -196,10 +196,10 @@ func (e *Engine) detectorWorker(ctx context.Context) {
 						if detectors.GetCustomFalsePositivesFilter().Pass(data) {
 							logrus.Debugf("ignoring custom false positive: \"%s\"", data)
 							if logrus.IsLevelEnabled(logrus.DebugLevel) {
-								output.PrintPlainOutput(resultWithMetadata, true)
+								output.PrintPlainOutput(&resultWithMetadata, true)
 							}
 						} else {
-							e.results <- *resultWithMetadata
+							e.results <- resultWithMetadata
 						}
 					}
 					if len(results) > 0 {

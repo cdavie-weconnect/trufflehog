@@ -49,8 +49,8 @@ type ResultWithMetadata struct {
 }
 
 // CopyMetadata returns a detector result with included metadata from the source chunk.
-func CopyMetadata(chunk *sources.Chunk, result Result) *ResultWithMetadata {
-	return &ResultWithMetadata{
+func CopyMetadata(chunk *sources.Chunk, result Result) ResultWithMetadata {
+	return ResultWithMetadata{
 		SourceMetadata: chunk.SourceMetadata,
 		SourceID:       chunk.SourceID,
 		SourceType:     chunk.SourceType,
