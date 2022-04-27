@@ -2,6 +2,8 @@ module github.com/trufflesecurity/trufflehog/v3
 
 go 1.17
 
+replace github.com/trufflesecurity/trufflehog => github.com/cdavie-weconnect/trufflehog main
+
 replace github.com/jpillora/overseer => github.com/trufflesecurity/overseer v1.1.7-custom5
 
 replace github.com/zricethezav/gitleaks/v8 => github.com/trufflesecurity/gitleaks/v8 v8.6.1-custom3
