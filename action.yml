@@ -13,7 +13,7 @@ inputs:
     description: Scan commits until here (usually dev branch).
     required: false
   falsePositives:
-    description: Path to file with newline separated strings to ignore as false positives
+    description: Path to file with newline separated strings to ignore as false positives.
     required: false
 branding:
   icon: "shield"
@@ -28,6 +28,6 @@ runs:
     - ${{ inputs.base }}
     - --branch
     - ${{ inputs.head }}
-    - --false-positives
+    - ${{ inputs.falsePositives && '--false-positives' }}
     - ${{ inputs.falsePositives }}
     - --fail
