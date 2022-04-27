@@ -18,6 +18,9 @@ inputs:
   debug:
     description: Show debug information.
     required: false
+  trace:
+    description: Show trace information.
+    required: false
 branding:
   icon: "shield"
   color: "green"
@@ -34,4 +37,5 @@ runs:
     - ${{ inputs.falsePositives && '--false-positives' }}
     - ${{ inputs.falsePositives }}
     - ${{ inputs.debug && '--debug' }}
+    - ${{ inputs.trace && '--trace' }}
     - --fail
