@@ -67,6 +67,16 @@ func TestFilterBasic(t *testing.T) {
 			pattern: "teststring",
 			pass:    false,
 		},
+		"FilterEmptyMatchesEverything": {
+			filter: *FilterEmpty(),
+			pattern: "teststring",
+			pass:    true,
+		},
+		"FilterNoRulesMatchesNOthing": {
+			filter: *FilterNoRules(),
+			pattern: "teststring",
+			pass:    false,
+		},
 	}
 
 	for name, test := range tests {
@@ -80,6 +90,7 @@ func TestFilterFromFile(t *testing.T) {
 	type filterTest struct {
 		includeFile         bool
 		excludeFile         bool
+		allowRegexp         bool
 		includeFileContents string
 		excludeFileContents string
 		pattern             string
@@ -121,7 +132,7 @@ func TestFilterFromFile(t *testing.T) {
 			pattern:             "test",
 			pass:                false,
 		},
-		"BothFilesEmptyExcludeFiltered": {
+		"bothFilesEmptyExcludeFiltered": {
 			includeFile:         true,
 			excludeFile:         true,
 			excludeFileContents: "",
@@ -129,25 +140,48 @@ func TestFilterFromFile(t *testing.T) {
 			pattern:             "test",
 			pass:                false,
 		},
+		"matchescapesRegexpWhenAllowed": {
+			includeFile:         true,
+			excludeFile:         false,
+			allowRegexp:         true,
+			includeFileContents: "\\d+",
+			pattern:             "123",
+			pass:                true,
+		},
+		"escapesRegexpWhenNotAllowed": {
+			includeFile:         true,
+			excludeFile:         false,
+			allowRegexp:         false,
+			includeFileContents: "\\d+",
+			pattern:             "123",
+			pass:                false,
+		},
+		"blankLinesDoNotMatchEverything": {
+			includeFile:         true,
+			excludeFile:         false,
+			includeFileContents: "test\n\nanother",
+			pattern:             "nomatch",
+			pass:                false,
+		},
 	}
 	for name, test := range tests {
 		var includeTestFile, excludeTestFile string
 		if test.includeFile {
 			includeTestFile = "/tmp/trufflehog_test_ifilter.txt"
-			if err := testFilterWriteFile(includeTestFile, []byte(test.includeFileContents)); err != nil {
+			if err := WriteTestFile(includeTestFile, []byte(test.includeFileContents)); err != nil {
 				t.Fatalf("failed to create include rules file: %s", err)
 			}
 			defer os.Remove(includeTestFile)
 		}
 		if test.excludeFile {
 			excludeTestFile = "/tmp/trufflehog_test_xfilter.txt"
-			if err := testFilterWriteFile(excludeTestFile, []byte(test.excludeFileContents)); err != nil {
+			if err := WriteTestFile(excludeTestFile, []byte(test.excludeFileContents)); err != nil {
 				t.Fatalf("failed to create include rules file: %s", err)
 			}
 			defer os.Remove(excludeTestFile)
 		}
 
-		filter, err := FilterFromFiles(includeTestFile, excludeTestFile, true)
+		filter, err := FilterFromFiles(includeTestFile, excludeTestFile, test.allowRegexp)
 		if err != nil {
 			t.Errorf("failed to create filter from files: %s", err)
 		}
@@ -156,16 +190,4 @@ func TestFilterFromFile(t *testing.T) {
 			t.Errorf("%s: unexpected filter result. pattern: %q, pass: %t", name, test.pattern, !test.pass)
 		}
 	}
-}
-
-func testFilterWriteFile(filename string, content []byte) error {
-	f, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	_, err = f.Write(content)
-	if err != nil {
-		return err
-	}
-	return f.Close()
 }

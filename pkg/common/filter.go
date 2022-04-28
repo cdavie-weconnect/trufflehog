@@ -17,6 +17,21 @@ type Filter struct {
 
 type FilterRuleSet []regexp.Regexp
 
+func FilterFromStrings(include []string, exclude []string) *Filter {
+	includeRegexp := make(FilterRuleSet, 0, len(include))
+	for _, str := range include {
+		includeRegexp = append(includeRegexp, *regexp.MustCompile(regexp.QuoteMeta(str)))
+	}
+	excludeRegexp := make(FilterRuleSet, 0, len(exclude))
+	for _, str := range exclude {
+		excludeRegexp = append(excludeRegexp, *regexp.MustCompile(regexp.QuoteMeta(str)))
+	}
+	return &Filter{
+		include: &includeRegexp,
+		exclude: &excludeRegexp,
+	}
+}
+
 // FilterEmpty returns a Filter that always passes.
 func FilterEmpty() *Filter {
 	filter, err := FilterFromFiles("", "", true)
@@ -28,10 +43,7 @@ func FilterEmpty() *Filter {
 
 // FilterNoRules returns a Filter that never passes.
 func FilterNoRules() *Filter {
-	return &Filter{
-		include: &FilterRuleSet{},
-		exclude: &FilterRuleSet{},
-	}
+	return FilterFromStrings([]string{}, []string{})
 }
 
 // FilterFromFiles creates a Filter using the rules in the provided include and exclude files.

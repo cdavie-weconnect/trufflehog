@@ -3,6 +3,7 @@ package common
 import (
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/trufflesecurity/trufflehog/v3/pkg/sources"
@@ -28,4 +29,16 @@ func HandleTestChannel(chunksCh chan *sources.Chunk, cf ChunkFunc) error {
 			return fmt.Errorf("no new chunks recieved after 10 seconds")
 		}
 	}
+}
+
+func WriteTestFile(filename string, content []byte) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(content)
+	if err != nil {
+		return err
+	}
+	return f.Close()
 }
