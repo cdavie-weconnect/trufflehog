@@ -147,7 +147,7 @@ func TestFilterFromFile(t *testing.T) {
 			defer os.Remove(excludeTestFile)
 		}
 
-		filter, err := FilterFromFiles(includeTestFile, excludeTestFile)
+		filter, err := FilterFromFiles(includeTestFile, excludeTestFile, true)
 		if err != nil {
 			t.Errorf("failed to create filter from files: %s", err)
 		}
