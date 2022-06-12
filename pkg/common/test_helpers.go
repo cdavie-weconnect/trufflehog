@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/trufflesecurity/trufflehog/v3/pkg/sources"
@@ -31,8 +32,15 @@ func HandleTestChannel(chunksCh chan *sources.Chunk, cf ChunkFunc) error {
 	}
 }
 
-func WriteTestFile(filename string, content []byte) error {
-	f, err := os.Create(filename)
+func WriteTestFile(path string, content []byte) error {
+	dir, _ := filepath.Split(path)
+	if dir != "" {
+		dirErr := os.MkdirAll(dir, os.ModePerm)
+		if dirErr != nil {
+			return dirErr
+		}
+	}
+	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}

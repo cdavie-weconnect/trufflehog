@@ -150,9 +150,11 @@ func (e *Engine) detectorWorker(ctx context.Context) {
 	for chunk := range e.chunks {
 		for _, decoder := range e.decoders {
 			decoded := decoder.FromChunk(chunk)
+			logrus.Debugf("***** CHUNK: %+v", decoded) // DELETE
 			if decoded == nil {
 				continue
 			}
+			logrus.Debugf("***** DATA: %+v", string(decoded.Data)) // DELETE
 			dataLower := strings.ToLower(string(decoded.Data))
 			for verify, detectorsSet := range e.detectors {
 				for _, detector := range detectorsSet {

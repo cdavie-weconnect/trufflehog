@@ -5,10 +5,12 @@ import (
 	"crypto/x509"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
+	log "github.com/sirupsen/logrus"
 )
 
 var caCerts = []string{
@@ -84,9 +86,26 @@ func (t *CustomTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return t.T.RoundTrip(req)
 }
 
+type LoggingTransport struct {
+	T http.RoundTripper
+}
+
+func (t *LoggingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if os.Getenv("LOG_HTTP") == "true" {
+		log.Infof("[REQ] ==> %+v", req)
+	}
+
+	res, err := http.DefaultTransport.RoundTrip(req)
+
+	if os.Getenv("LOG_HTTP") == "true" {
+		log.Infof("[RES] <== %+v", res)
+	}
+	return res, err
+}
+
 func NewCustomTransport(T http.RoundTripper) *CustomTransport {
 	if T == nil {
-		T = http.DefaultTransport
+		T = &LoggingTransport{T}
 	}
 	return &CustomTransport{T}
 }
